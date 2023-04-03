@@ -19,12 +19,15 @@ class Listing(models.Model):
 ]
 
     name = models.CharField(max_length=64)                                                  #name
-    description = models.CharField(max_length=640, null=True)                                          #description
+    description = models.CharField(max_length=640, null=True)                               #description
     price = models.DecimalField(max_digits=20, decimal_places=2)                            #price
     date = models.DateTimeField(auto_now_add=True)                                          #date creation
     image = models.ImageField()                                                             #image
     category = models.CharField(max_length=64, choices=CATEGORIES)                          #category
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")           #user
+
+    def __str__(self):
+        return self.name
 
 class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)                                            # user

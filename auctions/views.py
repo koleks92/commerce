@@ -4,9 +4,20 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
+from django import forms
+from .models import User, Listing
 
+class CreateFroms(forms.Form):
+    # Categories from models.listing
+    CHOICES = Listing.CATEGORIES
 
-from .models import User
+    name = forms.CharField(label="Name", widget=forms.TextInput(attrs={'placeholder': 'Enter name of the item'}))
+    description = forms.CharField(label="Description", widget=forms.TextInput(attrs={'placeholder': 'Enter description of the item'}))
+    price = forms.CharField(label="Price", widget=forms.TextInput(attrs={'placeholder': 'Enter price of the item'}))
+    category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES)
+    picture = forms.ImageField(required=False)
+                                                                                                                                                           
+                                                                   
 
 
 def index(request):
@@ -66,4 +77,29 @@ def register(request):
     
 @login_required
 def create(request):
-    return render(request, "auctions/create.html")
+    if request.method == "POST":
+        l_name = request.POST["name"]
+        l_description = request.POST["description"]
+        l_price = request.POST["price"]
+        if request.POST["category"]:
+            l_category = request.POST["category"]
+        if request.POST["picture"]:
+            l_picture = request.POST["picture"]
+
+        l_user = request.user
+
+
+        print(l_name)
+        print(l_description)
+        print(l_user)
+        l = Listing(name=l_name, description=l_description, price=l_price, user=l_user)
+        l.save()
+
+        return HttpResponseRedirect(reverse("index"))
+
+
+
+
+    return render(request, "auctions/create.html", {
+        "create": CreateFroms()
+    })
