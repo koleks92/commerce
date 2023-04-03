@@ -4,14 +4,14 @@
     <h2>Active Listings</h2>
 
     {% for listing in listings %}
-    <div id="listing_name">{{ listing.name }}</div>
-    <div id="listing_description">{{ listing.description }} </div>
-    <div id="listing_price">{{ listing.price }} </div>
+    <div id="index_name"><a href="{% url 'listing' listing.id %}">{{ listing.name }}</a></div>
+    <div id="index_description">{{ listing.description }} </div>
+    <div id="index_price">{{ listing.price }} </div>
     {% if listing.category %}
-    <div id="listing_category">c: {{ listing.category }}</div>
+    <div id="index_category">c: {{ listing.category }}</div>
     {% endif %}
     {% if listing.picture %}
-    <div id="listing_picture">P: {{ listing.picture }}</div>
+    <div id="index_picture">P: {{ listing.picture }}</div>
     {% endif %}
     ------------------------------
     {% endfor %}

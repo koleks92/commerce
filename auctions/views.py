@@ -80,7 +80,6 @@ def register(request):
 @login_required
 def create(request):
     if request.method == "POST":
-        print(request.POST["category"])
         l_name = request.POST["name"]
         l_description = request.POST["description"]
         l_price = request.POST["price"]
@@ -105,3 +104,52 @@ def create(request):
     return render(request, "auctions/create.html", {
         "create": CreateFroms()
     })
+
+def listing(request, listing_id):
+    user = request.user
+    listing = Listing.objects.get(id=listing_id)
+    watchlist = listing.watchlist.all()
+    if user in watchlist:
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "w": True
+        })
+    elif request.user.is_authenticated == False:
+        return render(request, "auctions/listing.html", {
+            "listing": listing
+        })
+    else:
+        return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "no_w": True
+        })
+    
+    return render(request, "auctions/error.html", {
+    "message" : "Listing does't exists"
+    })
+
+@login_required
+def watchlist(request, listing_id):
+    try:
+        if request.method == "POST":
+            listing = Listing.objects.get(id=listing_id)
+            if request.POST['watchlist'] == 'Add':
+                listing.watchlist.add(request.user)
+                return HttpResponseRedirect(reverse("listing", args=(listing.id, )))
+            else:
+                listing.watchlist.remove(request.user)
+                return HttpResponseRedirect(reverse("listing", args=(listing.id, )))
+
+    except:
+        return render(request, "auctions/error.html", {
+        "message" : "You need to be logged in to add to 'Watchlist'"
+        })
+
+
+
+
+    
+
+
+
+    
