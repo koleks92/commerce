@@ -6,6 +6,15 @@ from django.db import models
 class User(AbstractUser):
     pass
 
+class Bid(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)                                                # user
+    date = models.DateTimeField(auto_now=True)                                                              # date bid
+    bid = models.DecimalField(max_digits=20, decimal_places=2, default=0)                                   # user bid
+
+
+    def __str__(self):
+        return str(self.bid)
+
 class Listing(models.Model):
     CATEGORIES = [
     ('', 'Choose Category'),
@@ -27,22 +36,18 @@ class Listing(models.Model):
     category = models.CharField(max_length=64, choices=CATEGORIES, null=True, blank=True)   #category
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")           #user
     watchlist = models.ManyToManyField(User, blank=True, related_name="watchlist")          #watchlist
+    bids = models.ManyToManyField(Bid, blank=True, related_name="listing_bids")             #bids
 
 
     def __str__(self):
         return self.name
+    
 
-class Bid(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)                                            # user
-    date = models.DateTimeField(auto_now=True)                                                          # date bid
-    bid = models.DecimalField(max_digits=20, decimal_places=2, default=0)                               # user bid
-    listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="listing", default=0)   # listing
-    pass
+
 
 class Comment(models.Model):
     item = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comment", default=0)      # listing                      # item
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="User", default=0)            # user
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_user", default=0)    # user
     date = models.DateTimeField(auto_now=True)                                                          # date comment
     comment = models.CharField(max_length=128, default="")                                              # comments
-    pass
 

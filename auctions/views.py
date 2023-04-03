@@ -5,7 +5,7 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
-from .models import User, Listing
+from .models import User, Listing, Bid
 
 class CreateFroms(forms.Form):
     # Categories from models.listing
@@ -106,27 +106,38 @@ def create(request):
     })
 
 def listing(request, listing_id):
-    user = request.user
     listing = Listing.objects.get(id=listing_id)
-    watchlist = listing.watchlist.all()
-    if user in watchlist:
-        return render(request, "auctions/listing.html", {
-            "listing": listing,
-            "w": True
+    bids = listing.bids.all()
+    for b in bids:
+        print(b)
+    try:
+        user = request.user
+        listing = Listing.objects.get(id=listing_id)
+        watchlist = listing.watchlist.all()
+        
+
+        if request.user.is_authenticated == False:
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "bc": False                                 # Bids/Comments
+            })
+        
+        if user in watchlist:
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "w": True,                                 # Already in Watchlist
+                "bc": True,                                # Bids/Comments
+                })
+        else:
+            return render(request, "auctions/listing.html", {
+                "listing": listing,
+                "no_w": True,                              # Already in Watchlist
+                "bc": True                                 # Bids/Comments
+                })
+    except:
+        return render(request, "auctions/error.html", {
+        "message" : "Listing does't exists"
         })
-    elif request.user.is_authenticated == False:
-        return render(request, "auctions/listing.html", {
-            "listing": listing
-        })
-    else:
-        return render(request, "auctions/listing.html", {
-        "listing": listing,
-        "no_w": True
-        })
-    
-    return render(request, "auctions/error.html", {
-    "message" : "Listing does't exists"
-    })
 
 @login_required
 def watchlist(request, listing_id):
@@ -135,15 +146,30 @@ def watchlist(request, listing_id):
             listing = Listing.objects.get(id=listing_id)
             if request.POST['watchlist'] == 'Add':
                 listing.watchlist.add(request.user)
-                return HttpResponseRedirect(reverse("listing", args=(listing.id, )))
-            else:
+                return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+            elif request.POST['watchlist'] == 'Remove':
                 listing.watchlist.remove(request.user)
-                return HttpResponseRedirect(reverse("listing", args=(listing.id, )))
+                return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
 
     except:
         return render(request, "auctions/error.html", {
         "message" : "You need to be logged in to add to 'Watchlist'"
         })
+    
+@login_required
+def bid(request, listing_id):
+    if request.method == "POST":
+        bid = request.POST['bid']
+        listing = Listing.objects.get(id=listing_id)
+        if float(bid) < listing.price:
+            return render(request, "auctions/error.html", {
+            "message" : "You need to bid higher number than actual price"
+            })
+        else:
+            print('Hello')
+
+        return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+
 
 
 
