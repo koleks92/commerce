@@ -8,6 +8,7 @@ class User(AbstractUser):
 
 class Listing(models.Model):
     CATEGORIES = [
+    ('', 'Choose Category'),
     ('electornics', 'Electronics'),
     ('motors', 'Motors'),
     ('fashion', 'Fashion'),
@@ -22,8 +23,8 @@ class Listing(models.Model):
     description = models.CharField(max_length=640, null=True)                               #description
     price = models.DecimalField(max_digits=20, decimal_places=2)                            #price
     date = models.DateTimeField(auto_now_add=True)                                          #date creation
-    image = models.ImageField()                                                             #image
-    category = models.CharField(max_length=64, choices=CATEGORIES)                          #category
+    image = models.URLField(max_length=200, null=True, blank=True)                                                 #image                                                         #image
+    category = models.CharField(max_length=64, choices=CATEGORIES, null=True, blank=True)                          #category
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")           #user
 
     def __str__(self):

@@ -14,14 +14,16 @@ class CreateFroms(forms.Form):
     name = forms.CharField(label="Name", widget=forms.TextInput(attrs={'placeholder': 'Enter name of the item'}))
     description = forms.CharField(label="Description", widget=forms.TextInput(attrs={'placeholder': 'Enter description of the item'}))
     price = forms.CharField(label="Price", widget=forms.TextInput(attrs={'placeholder': 'Enter price of the item'}))
-    category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES)
-    picture = forms.ImageField(required=False)
+    category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
+    image = forms.URLField(required=False)
                                                                                                                                                            
                                                                    
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    return render(request, "auctions/index.html", {
+        "listings": Listing.objects.all()
+    })
 
 
 def login_view(request):
@@ -78,21 +80,21 @@ def register(request):
 @login_required
 def create(request):
     if request.method == "POST":
+        print(request.POST["category"])
         l_name = request.POST["name"]
         l_description = request.POST["description"]
         l_price = request.POST["price"]
         if request.POST["category"]:
             l_category = request.POST["category"]
-        if request.POST["picture"]:
-            l_picture = request.POST["picture"]
+        else:
+            l_category = None
+        if request.POST["image"]:
+            l_image = request.POST["image"]
+        else:
+            l_image = False
 
-        l_user = request.user
 
-
-        print(l_name)
-        print(l_description)
-        print(l_user)
-        l = Listing(name=l_name, description=l_description, price=l_price, user=l_user)
+        l = Listing(name=l_name, description=l_description, price=l_price, category=l_category, image=l_image, user=request.user)
         l.save()
 
         return HttpResponseRedirect(reverse("index"))
