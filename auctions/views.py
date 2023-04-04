@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
 from .models import User, Listing, Bid
+from django.db.models import Max
 
 class CreateFroms(forms.Form):
     # Categories from models.listing
@@ -17,7 +18,7 @@ class CreateFroms(forms.Form):
     category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
     image = forms.URLField(required=False)
                                                                                                                                                            
-                                                                   
+                         
 
 
 def index(request):
@@ -106,33 +107,44 @@ def create(request):
     })
 
 def listing(request, listing_id):
-    listing = Listing.objects.get(id=listing_id)
-    bids = listing.bids.all()
-    for b in bids:
-        print(b)
     try:
         user = request.user
         listing = Listing.objects.get(id=listing_id)
         watchlist = listing.watchlist.all()
-        
+        bids = Bid.objects.filter(listing_id=listing)
+
+        if bids:
+            num_bids = len(bids)
+            max_bid = bids.order_by('-bid')[0]          # Get highest bid
+            listing.price = max_bid.bid
+            if max_bid.user == user:                    # Check if logged in user is one with highest bid
+                user = True
+            else:
+                user = False
+            num_max_user = (num_bids, max_bid, user)
+        else:
+            num_max_user = (0,0,False)
+
+
 
         if request.user.is_authenticated == False:
             return render(request, "auctions/listing.html", {
                 "listing": listing,
-                "bc": False                                 # Bids/Comments
+                "bc": False,                               # Bids/Comments
+                "num_bids": num_bids                       # Number of bids
             })
         
         if user in watchlist:
             return render(request, "auctions/listing.html", {
                 "listing": listing,
                 "w": True,                                 # Already in Watchlist
-                "bc": True,                                # Bids/Comments
+                "bc": num_max_user,                        # Turn on bids/comments, (Number of bids, Max bid object, User)
                 })
         else:
             return render(request, "auctions/listing.html", {
                 "listing": listing,
-                "no_w": True,                              # Already in Watchlist
-                "bc": True                                 # Bids/Comments
+                "no_w": True,                              # Not in Watchlist
+                "bc": num_max_user,                             # Turn on bids/comments, (Number of bids, Max bid object, User)
                 })
     except:
         return render(request, "auctions/error.html", {
