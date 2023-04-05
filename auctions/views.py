@@ -112,41 +112,40 @@ def listing(request, listing_id):
         watchlist = listing.watchlist.all()
         bids = Bid.objects.filter(listing_id=listing)
 
+        listing_user = False
+        if request.user == listing.user:                                # Check if logged in user is one who created listing
+            listing_user = True
+
+        w = False
+        if request.user in watchlist:                                   # Check if logged in user in watchlist 
+            w = True
+
+        bc = False                                                      
+        if request.user.is_authenticated:                               # Check if user logged in, if so turn on bids/comments
+            bc = True 
+        
         active = True
-        if request.user == listing.user:            # Check if logged in user is one who created listing
+        if listing.active == False:
             active = False
-        
+
         if bids:
-            num_bids = len(bids)                        # Get number of bids
-            max_bid = bids.order_by('-bid')[0]          # Get highest bid
-            user = False
-            if request.user == max_bid.user:            # Check if logged in user is one with highest bid
-                user = True
-            num_user = (num_bids, user, active)
-        else:
-            num_user = (0,False, active)                  # (Number of bids, User is not highet bidder, Biding is active)
+            num_bids = len(bids)                                        # Get number of bids
+            max_bid = bids.order_by('-bid')[0]                          # Get highest bid
+            highest_user = False
+            if request.user == max_bid.user:                            # Check if logged in user is one with highest bid
+                highest_user = True
 
 
-
-        if request.user.is_authenticated == False:
-            return render(request, "auctions/listing.html", {
-                "listing": listing,
-                "bc": False,                               # Bids/Comments
-                "num_bids": num_bids                       # Number of bids
+        return render(request, "auctions/listing.html", {
+            "listing": listing,
+            "w": w,                                         # I in Watchlist
+            "bc": bc,                                       # Bids/Comments
+            "listing_user": listing_user,                   # User = Listing User
+            "num_bids": num_bids,                           # Number of bids
+            "highest_user": highest_user,                   # Highest bid user
+            "active": active                                # Active listing 
             })
-        
-        if request.user in watchlist:
-            return render(request, "auctions/listing.html", {
-                "listing": listing,
-                "w": True,                                 # Already in Watchlist
-                "bc": num_user                             # Turn on bids/comments, (Number of bids, User, Active)
-                })
-        else:
-            return render(request, "auctions/listing.html", {
-                "listing": listing,
-                "no_w": True,                              # Not in Watchlist
-                "bc": num_user                             # Turn on bids/comments, (Number of bids, User, Active)
-                })
+
     except:
         return render(request, "auctions/error.html", {
         "message" : "Listing does't exists"
@@ -193,7 +192,7 @@ def bid(request, listing_id):
                     return render(request, "auctions/error.html", {
                     "message" : "You need to bid higher number than actual price"
                     })
-                                      
+
             try:
                 b = Bid(user = request.user, bid = float(bid), listing_id = listing).save()  # Create bid
                 listing.price = float(bid)                                                   # Change listing price !
@@ -206,6 +205,23 @@ def bid(request, listing_id):
             return render(request, "auctions/error.html", {
             "message" : "Something went wrong ! Please try again."
             })
+        
+@login_required
+def close(request, listing_id):
+    if request.method == "POST":
+        listing = Listing.objects.get(id=listing_id)
+        if listing.user != request.user:
+            return render(request, "auctions/error.html", {
+            "message" : "You can't close the listing you did't create."
+            })
+        
+        if listing.active == True:
+            listing.active = False
+        else:
+            listing.active = True
+        listing.save()
+
+        return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
 
 
 
