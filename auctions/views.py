@@ -152,11 +152,11 @@ def listing(request, listing_id):
 
     except:
         return render(request, "auctions/error.html", {
-        "message" : "Listing does't exists"
+        "message" : "Listing does't exist"
         })
 
 @login_required
-def watchlist(request, listing_id):
+def add_watchlist(request, listing_id):
     try:
         if request.method == "POST":
             listing = Listing.objects.get(id=listing_id)
@@ -219,20 +219,26 @@ def bid(request, listing_id):
 @login_required
 def close(request, listing_id):
     if request.method == "POST":
-        listing = Listing.objects.get(id=listing_id)
-        if listing.user != request.user:                                                        # Double check if logged in user is correct user
-            return render(request, "auctions/error.html", {
-            "message" : "You can't close the listing you did't create."
-            })
-        
-        if listing.active == True:                                                              # Change listing bool for active
-            listing.active = False
-        else:
-            listing.active = True
-        listing.save()
+        try:
+            listing = Listing.objects.get(id=listing_id)
+            if listing.user != request.user:                                                        # Double check if logged in user is correct user
+                return render(request, "auctions/error.html", {
+                "message" : "You can't close the listing you did't create."
+                })
+            
+            if listing.active == True:                                                              # Change listing bool for active
+                listing.active = False
+            else:
+                listing.active = True
+            listing.save()
 
-        return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
-    
+            return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+        except:
+            return render(request, "auctions/error.html", {
+            "message" : "Something went wrong ! Please try again."
+            })
+
+        
 @login_required
 def comment(request, listing_id):
     if request.method == "POST":
@@ -243,7 +249,15 @@ def comment(request, listing_id):
             c.save()                                                                            # Save
             return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
         except:
-            return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+            return render(request, "auctions/error.html", {
+            "message" : "Something went wrong ! Please try again."
+            })
+@login_required
+def watchlist(request):
+    return render(request, "auctions/watchlist.html", {
+        "listings": Listing.objects.filter(watchlist = request.user)
+    })
+    
 
 
 

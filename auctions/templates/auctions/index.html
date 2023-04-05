@@ -2,17 +2,20 @@
 
 {% block body %}
     <h2>Active Listings</h2>
-
-    {% for listing in listings %}
-    <div id="index_name"><a href="{% url 'listing' listing.id %}">{{ listing.name }}</a></div>
-    <div id="index_description">{{ listing.description }} </div>
-    <div id="index_price">{{ listing.price }} </div>
-    {% if listing.category %}
-    <div id="index_category">c: {{ listing.category }}</div>
+    {% if listings %}
+        {% for listing in listings %}
+        <div class="listing_name"><a href="{% url 'listing' listing.id %}">{{ listing.name }}</a></div>
+        <div class="listing_description">{{ listing.description }} </div>
+        <div class="listing_price">{{ listing.price }} </div>
+        {% if listing.category %}
+        <div class="listing_category">c: {{ listing.category }}</div>
+        {% endif %}
+        {% if listing.picture %}
+        <div class="listing_picture">P: {{ listing.picture }}</div>
+        {% endif %}
+        ------------------------------
+        {% endfor %}
+    {% else %}
+        <div class="listing_extra">There are no listings in our database</div>
     {% endif %}
-    {% if listing.picture %}
-    <div id="index_picture">P: {{ listing.picture }}</div>
-    {% endif %}
-    ------------------------------
-    {% endfor %}
 {% endblock %}
