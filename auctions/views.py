@@ -124,7 +124,7 @@ def listing(request, listing_id):
         if request.user.is_authenticated:                               # Check if user logged in, if so turn on bids/comments
             bc = True 
         
-        active = True
+        active = True                                                   # Check if listing is active
         if listing.active == False:
             active = False
 
@@ -138,7 +138,7 @@ def listing(request, listing_id):
 
         return render(request, "auctions/listing.html", {
             "listing": listing,
-            "w": w,                                         # I in Watchlist
+            "w": w,                                         # If user in Watchlist
             "bc": bc,                                       # Bids/Comments
             "listing_user": listing_user,                   # User = Listing User
             "num_bids": num_bids,                           # Number of bids
@@ -156,16 +156,16 @@ def watchlist(request, listing_id):
     try:
         if request.method == "POST":
             listing = Listing.objects.get(id=listing_id)
-            if request.POST['watchlist'] == 'Add':
+            if request.POST['watchlist'] == 'Add':                                          # Add user to listing watchlist
                 listing.watchlist.add(request.user)
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
-            elif request.POST['watchlist'] == 'Remove':
+            elif request.POST['watchlist'] == 'Remove':                                     # Remove user from listing watchlist
                 listing.watchlist.remove(request.user)
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
 
-    except:
+    except:                                                                                 # Error check
         return render(request, "auctions/error.html", {
-        "message" : "You need to be logged in to add to 'Watchlist'"
+        "message" : "Something went wrong ! Please try again."
         })
     
 @login_required
@@ -182,12 +182,12 @@ def bid(request, listing_id):
                 "message" : "You can't bid on your own listing"
                 })
             
-            if len(bids) == 0:                                                                      # If first bid !
+            if len(bids) == 0:                                                                  # If first bid !
                 if float(bid) < listing.price:
                     return render(request, "auctions/error.html", {
                     "message" : "You need to bid higher number than actual price"
                     })
-            if len(bids) > 0:                                                                    # If not first bid
+            if len(bids) > 0:                                                                   # If not first bid
                 if float(bid) <= listing.price:
                     return render(request, "auctions/error.html", {
                     "message" : "You need to bid higher number than actual price"
@@ -210,12 +210,12 @@ def bid(request, listing_id):
 def close(request, listing_id):
     if request.method == "POST":
         listing = Listing.objects.get(id=listing_id)
-        if listing.user != request.user:
+        if listing.user != request.user:                                                        # Double check if logged in user is correct user
             return render(request, "auctions/error.html", {
             "message" : "You can't close the listing you did't create."
             })
         
-        if listing.active == True:
+        if listing.active == True:                                                              # Change listing bool for active
             listing.active = False
         else:
             listing.active = True
