@@ -18,13 +18,20 @@ class CreateForms(forms.Form):
     category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
     image = forms.URLField(required=False)
 
-                                                                                                            
+''' Help function'''
+def bid_to_price(listings): # Not perfect but works ;)
+    for l in listings:
+        bids = Bid.objects.filter(listing_id=l)
+        if bids:
+            max_bid = bids.order_by('-bid')[0]                                      # Get highest bid
+            l.price = max_bid.bid                                                   # Change the price
+    return listings
+
 
 ''' Views functions '''                     
-
 def index(request):
     return render(request, "auctions/index.html", {
-        "listings": Listing.objects.all()
+        "listings": bid_to_price(Listing.objects.filter(active = True))
     })
 
 
@@ -130,15 +137,15 @@ def listing(request, listing_id):
         if listing.active == False:
             active = False
 
+        num_bids = 0
+        highest_user = False
         if bids:
             num_bids = len(bids)                                                    # Get number of bids
             max_bid = bids.order_by('-bid')[0]                                      # Get highest bid
-            highest_user = False
             if request.user == max_bid.user:                                        # Check if logged in user is one with highest bid
-                highest_user = True
-        
-
-
+                highest_user = True          
+            listing.price = max_bid.bid
+    
         return render(request, "auctions/listing.html", {
             "listing": listing,
             "w": w,                                         # If user in Watchlist
@@ -175,10 +182,12 @@ def add_watchlist(request, listing_id):
 @login_required
 def bid(request, listing_id):
     if request.method == "POST":
-        try:
             bid = request.POST['bid']
             listing = Listing.objects.get(id=listing_id)
-            bids = Bid.objects.filter(listing_id=listing)
+            bids = Bid.objects.filter(listing_id=listing)                                       # Get all bids
+            if bids:
+                max_bid = bids.order_by('-bid')[0]                                              # Get highest bid
+
 
 
             if request.user == listing.user:                                                    # If trying to bid on own listing
@@ -186,36 +195,29 @@ def bid(request, listing_id):
                 "message" : "You can't bid on your own listing"
                 })
             
-            if listing.active == False:
+            if listing.active == False:                                                         # If auction closed
                 return render(request, "auctions/error.html", {
                 "message" : "You can't bid on closed listing"
                 })
-
-            
+        
             if len(bids) == 0:                                                                  # If first bid !
                 if float(bid) < listing.price:
                     return render(request, "auctions/error.html", {
                     "message" : "You need to bid higher or the same number than actual price"
                     })
             if len(bids) > 0:                                                                   # If not first bid
-                if float(bid) <= listing.price:
+                if float(bid) <= max_bid.bid:
                     return render(request, "auctions/error.html", {
                     "message" : "You need to bid higher number than actual price"
                     })
 
             try:
                 b = Bid(user = request.user, bid = float(bid), listing_id = listing).save()     # Create bid
-                listing.price = float(bid)                                                      # Change listing price !
-                listing.save()                                                                  # Save listing price
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
             except:
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
 
-        except:
-            return render(request, "auctions/error.html", {
-            "message" : "Something went wrong ! Please try again."
-            })
-        
+
 @login_required
 def close(request, listing_id):
     if request.method == "POST":
@@ -228,8 +230,6 @@ def close(request, listing_id):
             
             if listing.active == True:                                                              # Change listing bool for active
                 listing.active = False
-            else:
-                listing.active = True
             listing.save()
 
             return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
@@ -255,9 +255,8 @@ def comment(request, listing_id):
         
 @login_required
 def watchlist(request):
-    listings = Listing.objects.filter(watchlist = request.user)
     return render(request, "auctions/watchlist.html", {
-        "listings": Listing.objects.filter(watchlist = request.user)
+        "listings": bid_to_price(Listing.objects.filter(watchlist = request.user))
     })
 
 def categories(request):
@@ -270,7 +269,7 @@ def category(request, category_name):
     try:
         category = Listing.objects.get(category = category_name).get_category_display()
         return render(request, "auctions/category.html", {
-            "listings": Listing.objects.filter(category = category_name),
+            "listings": bid_to_price(Listing.objects.filter(category = category_name, active = True)),
             "category": category
             })
     except:
@@ -278,13 +277,6 @@ def category(request, category_name):
             "message" : "There are no listings in that category yet"
             })
         
-
-    
-
-
-
-        
-
 
 
         
