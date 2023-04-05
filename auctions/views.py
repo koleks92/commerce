@@ -257,6 +257,24 @@ def watchlist(request):
     return render(request, "auctions/watchlist.html", {
         "listings": Listing.objects.filter(watchlist = request.user)
     })
+
+def categories(request):
+    categories = Listing.CATEGORIES[1:]
+    return render(request, "auctions/categories.html", {
+    "categories": categories
+    })
+
+def category(request, category_name):
+    listings = Listing.objects.filter(category = category_name)
+    category = category_name
+
+    return render(request, "auctions/category.html", {
+        "listings": listings,
+        "category": category,
+        "categories": categories
+        })
+    
+
     
 
 

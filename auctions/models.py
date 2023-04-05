@@ -10,7 +10,7 @@ class User(AbstractUser):
 class Listing(models.Model):
     CATEGORIES = [
     ('', 'Choose Category'),
-    ('electornics', 'Electronics'),
+    ('electronics', 'Electronics'),
     ('motors', 'Motors'),
     ('fashion', 'Fashion'),
     ('collectibles', 'Collectibles and Art'),
