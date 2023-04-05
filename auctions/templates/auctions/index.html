@@ -8,7 +8,7 @@
         <div class="listing_description">{{ listing.description }} </div>
         <div class="listing_price">{{ listing.price }} </div>
         {% if listing.category %}
-        <div class="listing_category">c: {{ listing.category }}</div>
+        <div class="listing_category">c: {{ listing.get_category_display }}</div>
         {% endif %}
         {% if listing.picture %}
         <div class="listing_picture">P: {{ listing.picture }}</div>

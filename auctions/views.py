@@ -18,9 +18,9 @@ class CreateForms(forms.Form):
     category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
     image = forms.URLField(required=False)
 
-                                                                                                             
-                         
+                                                                                                            
 
+''' Views functions '''                     
 
 def index(request):
     return render(request, "auctions/index.html", {
@@ -252,8 +252,10 @@ def comment(request, listing_id):
             return render(request, "auctions/error.html", {
             "message" : "Something went wrong ! Please try again."
             })
+        
 @login_required
 def watchlist(request):
+    listings = Listing.objects.filter(watchlist = request.user)
     return render(request, "auctions/watchlist.html", {
         "listings": Listing.objects.filter(watchlist = request.user)
     })
@@ -265,15 +267,17 @@ def categories(request):
     })
 
 def category(request, category_name):
-    listings = Listing.objects.filter(category = category_name)
-    category = category_name
-
-    return render(request, "auctions/category.html", {
-        "listings": listings,
-        "category": category,
-        "categories": categories
-        })
-    
+    try:
+        category = Listing.objects.get(category = category_name).get_category_display()
+        return render(request, "auctions/category.html", {
+            "listings": Listing.objects.filter(category = category_name),
+            "category": category
+            })
+    except:
+        return render(request, "auctions/error.html", {
+            "message" : "There are no listings in that category yet"
+            })
+        
 
     
 
