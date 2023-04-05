@@ -28,7 +28,7 @@ class Listing(models.Model):
     image = models.URLField(max_length=200, null=True, blank=True)                          #image                                                         #image
     category = models.CharField(max_length=64, choices=CATEGORIES, null=True, blank=True)   #category
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")           #user
-    watchlist = models.ManyToManyField(User, blank=True, related_name="watchlist")          #watchlist
+    watchlist = models.ManyToManyField(User, blank=True, related_name="watchlist")          #watchlistd
 
 
     def __str__(self):
@@ -38,7 +38,7 @@ class Bid(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)                                                # user
     date = models.DateTimeField(auto_now=True)                                                              # date bid
     bid = models.DecimalField(max_digits=20, decimal_places=2, default=0)                                   # user bid
-    listing_id = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="listing_bid", null=True)   # listing 
+    listing_id = models.ForeignKey(Listing, on_delete=models.CASCADE, null=True)                            # listing 
 
 
     def __str__(self):
