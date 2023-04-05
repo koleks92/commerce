@@ -5,10 +5,10 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
-from .models import User, Listing, Bid
+from .models import User, Listing, Bid, Comment
 from django.db.models import Max
 
-class CreateFroms(forms.Form):
+class CreateForms(forms.Form):
     # Categories from models.listing
     CHOICES = Listing.CATEGORIES
 
@@ -17,7 +17,8 @@ class CreateFroms(forms.Form):
     price = forms.CharField(label="Price", widget=forms.TextInput(attrs={'placeholder': 'Enter price of the item'}))
     category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
     image = forms.URLField(required=False)
-                                                                                                                                                           
+
+                                                                                                             
                          
 
 
@@ -103,7 +104,7 @@ def create(request):
 
 
     return render(request, "auctions/create.html", {
-        "create": CreateFroms()
+        "create": CreateForms()
     })
 
 def listing(request, listing_id):
@@ -111,29 +112,31 @@ def listing(request, listing_id):
         listing = Listing.objects.get(id=listing_id)
         watchlist = listing.watchlist.all()
         bids = Bid.objects.filter(listing_id=listing)
+        comments = Comment.objects.filter(listing_id=listing).order_by('-date')     # Get comments and order by newest first
 
         listing_user = False
-        if request.user == listing.user:                                # Check if logged in user is one who created listing
+        if request.user == listing.user:                                            # Check if logged in user is one who created listing
             listing_user = True
 
         w = False
-        if request.user in watchlist:                                   # Check if logged in user in watchlist 
+        if request.user in watchlist:                                               # Check if logged in user in watchlist 
             w = True
 
         bc = False                                                      
-        if request.user.is_authenticated:                               # Check if user logged in, if so turn on bids/comments
+        if request.user.is_authenticated:                                           # Check if user logged in, if so turn on bids/comments
             bc = True 
         
-        active = True                                                   # Check if listing is active
+        active = True                                                               # Check if listing is active
         if listing.active == False:
             active = False
 
         if bids:
-            num_bids = len(bids)                                        # Get number of bids
-            max_bid = bids.order_by('-bid')[0]                          # Get highest bid
+            num_bids = len(bids)                                                    # Get number of bids
+            max_bid = bids.order_by('-bid')[0]                                      # Get highest bid
             highest_user = False
-            if request.user == max_bid.user:                            # Check if logged in user is one with highest bid
+            if request.user == max_bid.user:                                        # Check if logged in user is one with highest bid
                 highest_user = True
+        
 
 
         return render(request, "auctions/listing.html", {
@@ -143,7 +146,8 @@ def listing(request, listing_id):
             "listing_user": listing_user,                   # User = Listing User
             "num_bids": num_bids,                           # Number of bids
             "highest_user": highest_user,                   # Highest bid user
-            "active": active                                # Active listing 
+            "active": active,                               # Active listing 
+            "comments": comments                            # Comments
             })
 
     except:
@@ -182,10 +186,16 @@ def bid(request, listing_id):
                 "message" : "You can't bid on your own listing"
                 })
             
+            if listing.active == False:
+                return render(request, "auctions/error.html", {
+                "message" : "You can't bid on closed listing"
+                })
+
+            
             if len(bids) == 0:                                                                  # If first bid !
                 if float(bid) < listing.price:
                     return render(request, "auctions/error.html", {
-                    "message" : "You need to bid higher number than actual price"
+                    "message" : "You need to bid higher or the same number than actual price"
                     })
             if len(bids) > 0:                                                                   # If not first bid
                 if float(bid) <= listing.price:
@@ -194,9 +204,9 @@ def bid(request, listing_id):
                     })
 
             try:
-                b = Bid(user = request.user, bid = float(bid), listing_id = listing).save()  # Create bid
-                listing.price = float(bid)                                                   # Change listing price !
-                listing.save()                                                               # Save listing price
+                b = Bid(user = request.user, bid = float(bid), listing_id = listing).save()     # Create bid
+                listing.price = float(bid)                                                      # Change listing price !
+                listing.save()                                                                  # Save listing price
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
             except:
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
@@ -222,6 +232,22 @@ def close(request, listing_id):
         listing.save()
 
         return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+    
+@login_required
+def comment(request, listing_id):
+    if request.method == "POST":
+        try:
+            listing = Listing.objects.get(id=listing_id)
+            comment = request.POST['comment']                                                   # Get comment
+            c = Comment(listing_id = listing, user = request.user, comment = comment)           # Create instance of Comment
+            c.save()                                                                            # Save
+            return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+        except:
+            return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+
+
+
+        
 
 
 

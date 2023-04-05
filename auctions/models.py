@@ -7,7 +7,6 @@ class User(AbstractUser):
     pass
 
 
-
 class Listing(models.Model):
     CATEGORIES = [
     ('', 'Choose Category'),
@@ -43,14 +42,16 @@ class Bid(models.Model):
 
 
     def __str__(self):
-        return str(self.bid) + "_" + str(self.listing_id)
+        return str(self.listing_id) + "_" + str(self.bid)
     
 
 
 
 class Comment(models.Model):
-    item = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name="comment", default=0)      # listing                      # item
+    listing_id = models.ForeignKey(Listing, on_delete=models.CASCADE, default=0)                        # listing          
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="comment_user", default=0)    # user
     date = models.DateTimeField(auto_now=True)                                                          # date comment
     comment = models.CharField(max_length=128, default="")                                              # comments
 
+    def __str__(self):
+        return str(self.listing_id) + "_" + str(self.id)
