@@ -287,6 +287,10 @@ def category(request, category_name):
 @login_required
 def won_auctions(request):
     listings = Listing.objects.filter(winner = request.user)
+    if len(listings) == 0:
+        return render(request, "auctions/error.html", {
+            "message" : "You did't win any auction yet"
+            })
     return render(request, "auctions/won_auctions.html", {
             "listings" : listings
             })
