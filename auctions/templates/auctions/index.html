@@ -7,7 +7,8 @@
     <div id="i_listings">
         {% for listing in listings %}
         <div class="i_listing">
-            <div class="i_listing_name"><a class="i_listing_link" href="{% url 'listing' listing.id %}">{{ listing.name }}</a></div>
+            <a class="i_listing_link" href="{% url 'listing' listing.id %}">
+            <div class="i_listing_name">{{ listing.name }}</div>
             {% if listing.image %}
             <div class="i_listing_image_div"><img class="i_listing_image" src="{{ listing.image }}"></div>
             {% else %}
@@ -19,7 +20,9 @@
                 <div class="i_listing_category"><b>{{ listing.get_category_display }}</b></div>
             {% endif %}
             <div class="i_listing_price"><b>Price: </b>{{ listing.price }} </div>
+            </a>
         </div>
+        
         {% endfor %}
     </div>
     {% else %}

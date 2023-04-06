@@ -13,10 +13,10 @@ class CreateForms(forms.Form):
     CHOICES = Listing.CATEGORIES
 
     name = forms.CharField(label="Name", widget=forms.TextInput(attrs={'placeholder': 'Enter name of the item'}))
-    description = forms.CharField(label="Description", widget=forms.TextInput(attrs={'placeholder': 'Enter description of the item'}))
+    description = forms.CharField(label="Description", widget=forms.Textarea(attrs={'placeholder': 'Enter description of the item'}))
     price = forms.CharField(label="Price", widget=forms.TextInput(attrs={'placeholder': 'Enter price of the item'}))
     category = forms.ChoiceField(widget=forms.Select, required=False, choices=CHOICES, initial=False)
-    image = forms.URLField(required=False)
+    image = forms.URLField(label="Image URL", required=False, widget=forms.TextInput(attrs={'placeholder': 'Image URL'}))
 
 ''' Help function'''
 def bid_to_price(listings): # Not perfect but works ;)
