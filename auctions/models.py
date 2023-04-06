@@ -20,15 +20,16 @@ class Listing(models.Model):
     ('home', 'Home and Garden')
 ]
 
-    name = models.CharField(max_length=64)                                                  #name
-    description = models.CharField(max_length=640, null=True)                               #description
-    price = models.DecimalField(max_digits=20, decimal_places=2)                            #price
-    date = models.DateTimeField(auto_now_add=True)                                          #date creation
-    image = models.URLField(max_length=200, null=True, blank=True)                          #image URL
-    category = models.CharField(max_length=64, choices=CATEGORIES, null=True, blank=True)   #category
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")           #user 
-    watchlist = models.ManyToManyField(User, blank=True, related_name="watchlist")          #watchlist users
-    active = models.BooleanField(User, default=True)                                        #active listing
+    name = models.CharField(max_length=64)                                                              #name
+    description = models.CharField(max_length=640, null=True)                                           #description
+    price = models.DecimalField(max_digits=20, decimal_places=2)                                        #price
+    date = models.DateTimeField(auto_now_add=True)                                                      #date creation
+    image = models.URLField(max_length=200, null=True, blank=True)                                      #image URL
+    category = models.CharField(max_length=64, choices=CATEGORIES, null=True, blank=True)               #category
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="user")                       #user 
+    watchlist = models.ManyToManyField(User, blank=True, related_name="watchlist")                      #watchlist users
+    active = models.BooleanField(default=True)                                                          #active listing
+    winner = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)                   #save winner
 
 
     def __str__(self):

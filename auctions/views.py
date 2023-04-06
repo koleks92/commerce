@@ -230,6 +230,13 @@ def close(request, listing_id):
             
             if listing.active == True:                                                              # Change listing bool for active
                 listing.active = False
+                bids = Bid.objects.filter(listing_id=listing)                                       # Get all bids
+                if bids:
+                    max_bid = bids.order_by('-bid')[0]                                              # Get highest bid
+                    listing.price = max_bid.bid                                                     # Change the price to highest bid
+                    listing.winner = max_bid.user                                                   # Set winner user
+
+
             listing.save()
 
             return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
@@ -276,7 +283,15 @@ def category(request, category_name):
         return render(request, "auctions/error.html", {
             "message" : "There are no listings in that category yet"
             })
-        
+
+@login_required
+def won_auctions(request):
+    listings = Listing.objects.filter(winner = request.user)
+    return render(request, "auctions/won_auctions.html", {
+            "listings" : listings
+            })
+
+
 
 
         
