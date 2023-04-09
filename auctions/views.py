@@ -86,33 +86,36 @@ def register(request):
     else:
         return render(request, "auctions/register.html")
     
-@login_required
+@login_required(login_url='/login')
 def create(request):
-    if request.method == "POST":
-        l_name = request.POST["name"]
-        l_description = request.POST["description"]
-        l_price = request.POST["price"]
-        if request.POST["category"]:
-            l_category = request.POST["category"]
-        else:
-            l_category = None
-        if request.POST["image"]:
-            l_image = request.POST["image"]
-        else:
-            l_image = False
+    try:
+        if request.method == "POST":
+            l_name = request.POST["name"]
+            l_description = request.POST["description"]
+            l_price = request.POST["price"]
+            if request.POST["category"]:
+                l_category = request.POST["category"]
+            else:
+                l_category = None
+            if request.POST["image"]:
+                l_image = request.POST["image"]
+            else:
+                l_image = "static/auctions/no_image.jpg"
 
+            l = Listing(name=l_name, description=l_description, price=l_price, category=l_category, image=l_image, user=request.user)
+            l.save()
 
-        l = Listing(name=l_name, description=l_description, price=l_price, category=l_category, image=l_image, user=request.user)
-        l.save()
+            return HttpResponseRedirect(reverse("index"))
 
-        return HttpResponseRedirect(reverse("index"))
+        return render(request, "auctions/create.html", {
+            "create": CreateForms()
+        })
 
+    except:
+        return render(request, "auctions/error.html", {
+        "message" : "Something went wrong ! Please try again."
+        })
 
-
-
-    return render(request, "auctions/create.html", {
-        "create": CreateForms()
-    })
 
 def listing(request, listing_id):
     try:
@@ -162,7 +165,7 @@ def listing(request, listing_id):
         "message" : "Listing does't exist"
         })
 
-@login_required
+@login_required(login_url='/login')
 def add_watchlist(request, listing_id):
     try:
         if request.method == "POST":
@@ -179,15 +182,15 @@ def add_watchlist(request, listing_id):
         "message" : "Something went wrong ! Please try again."
         })
     
-@login_required
+@login_required(login_url='/login')
 def bid(request, listing_id):
     if request.method == "POST":
+        try:
             bid = request.POST['bid']
             listing = Listing.objects.get(id=listing_id)
             bids = Bid.objects.filter(listing_id=listing)                                       # Get all bids
             if bids:
                 max_bid = bids.order_by('-bid')[0]                                              # Get highest bid
-
 
 
             if request.user == listing.user:                                                    # If trying to bid on own listing
@@ -216,9 +219,14 @@ def bid(request, listing_id):
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
             except:
                 return HttpResponseRedirect(reverse("listing", args=(listing_id, )))
+        
+        except:
+            return render(request, "auctions/error.html", {
+            "message" : "Something went wrong ! Please try again."
+            })
 
 
-@login_required
+@login_required(login_url='/login')
 def close(request, listing_id):
     if request.method == "POST":
         try:
@@ -246,7 +254,7 @@ def close(request, listing_id):
             })
 
         
-@login_required
+@login_required(login_url='/login')
 def comment(request, listing_id):
     if request.method == "POST":
         try:
@@ -260,17 +268,27 @@ def comment(request, listing_id):
             "message" : "Something went wrong ! Please try again."
             })
         
-@login_required
+@login_required(login_url='/login')
 def watchlist(request):
-    return render(request, "auctions/watchlist.html", {
-        "listings": bid_to_price(Listing.objects.filter(watchlist = request.user))
-    })
+    try:
+        return render(request, "auctions/watchlist.html", {
+            "listings": bid_to_price(Listing.objects.filter(watchlist = request.user))
+        })
+    except:
+        return render(request, "auctions/error.html", {
+        "message" : "Something went wrong ! Please try again."
+        })
 
 def categories(request):
-    categories = Listing.CATEGORIES[1:]
-    return render(request, "auctions/categories.html", {
-    "categories": categories
-    })
+    try:
+        categories = Listing.CATEGORIES[1:]
+        return render(request, "auctions/categories.html", {
+        "categories": categories
+        })
+    except:
+        return render(request, "auctions/error.html", {
+        "message" : "Something went wrong ! Please try again."
+        })
 
 def category(request, category_name):
     try:
@@ -284,16 +302,21 @@ def category(request, category_name):
             "message" : "There are no listings in that category yet"
             })
 
-@login_required
+@login_required(login_url='/login')
 def won_auctions(request):
-    listings = Listing.objects.filter(winner = request.user)
-    if len(listings) == 0:
+    try:
+        listings = Listing.objects.filter(winner = request.user)
+        if len(listings) == 0:
+            return render(request, "auctions/error.html", {
+                "message" : "You did't win any auction yet"
+                })
+        return render(request, "auctions/won_auctions.html", {
+                "listings" : listings
+                })
+    except:
         return render(request, "auctions/error.html", {
-            "message" : "You did't win any auction yet"
-            })
-    return render(request, "auctions/won_auctions.html", {
-            "listings" : listings
-            })
+        "message" : "Something went wrong ! Please try again."
+        })
 
 
 
