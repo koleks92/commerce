@@ -1,0 +1,29 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div id="index_body">
+    <h2>Watchlist</h2>
+    {% if listings %}
+    <div id="i_listings">
+        {% for listing in listings %}
+        <div class="i_listing">
+            <div class="i_listing_name"><a class="i_listing_link" href="{% url 'listing' listing.id %}">{{ listing.name }}</a></div>
+            {% if listing.image %}
+            <div class="i_listing_image_div"><img class="i_listing_image" src="{{ listing.image }}"></div>
+            {% else %}
+            <div class="i_listing_image_div"><img class="i_listing_image" src="static/auctions/no_image.jpg"></div>
+
+            {% endif %}
+            <div class="i_listing_description">{{ listing.description }} </div>
+            {% if listing.category %}
+                <div class="i_listing_category"><b>{{ listing.get_category_display }}</b></div>
+            {% endif %}
+            <div class="i_listing_price"><b>Price: </b>{{ listing.price }} </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+        <div class="error">There are no listings in your watchlist</div>
+    {% endif %}
+</div>
+{% endblock %}

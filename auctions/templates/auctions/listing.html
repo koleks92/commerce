@@ -1,0 +1,108 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+<div id="listing_body">
+    <div id="listing_head">
+        <div id="listing_name">
+            <h2 id="listing_h2">{{ listing.name }}</h2>
+        </div>
+        <div id="listing_watchlist">
+            {% if bc %}
+            <div id="Listing_watchlist_1">Watchlist</div>
+            <div id="Listing_watchlist_2">
+                {% if w %}
+                    <form action="{% url 'add_watchlist' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="submit" name="watchlist" class="watchlist_button" value="Remove">
+                    </form>
+                {% else %}
+                    <form action="{% url 'add_watchlist' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="submit" name="watchlist" class="watchlist_button" value="Add">
+                    </form>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <div id="listing_content">
+        {% if listing.image %}
+            <div id="listing_picture_div"><img id="listing_image_img" src="{{ listing.image }}"></div> 
+        {% else %}
+            <div id="listing_picture_div"><img id="listing_image_img" src="static/auctions/no_image.jpg"></div> 
+        {% endif %}
+        <div id="listing_description">{{ listing.description}} </div>
+        <div id="listing_price"><b>Price {{ listing.price }}</b></div>
+        {% if bc %}
+            <div id="listing_bid_text">{{ num_bids }} bid(s) so far !
+            {% if highest_user %}
+                    <b>Your bid</b> is current bid! </div>
+            {% else %}
+            </div>
+            {% endif %}
+            {% if listing_user %}
+                {% if active %}
+                    <form action="{% url 'close' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="listing_bid_button"><input type="submit" value="Close listing"></div>
+                    </form>
+                {% else%}
+                    <b>Auction is closed !</b>
+                {% endif %}
+            {% else %}
+                {% if active %}
+                    <form action="{% url 'bid' listing.id %}" method="post">
+                        {% csrf_token %}
+                        <div id="listing_bids">
+                            <div><input type="number" name="bid" id="listing_bid_field" placeholder="Your bid"></div>
+                            <div class="listing_bid_button"><input type="submit" id="listing_bid_button" value="Bid !"></div>
+                        </div>
+                    </form>
+                {% else %}
+                    {% if highest_user %}
+                        <b>You won this auction !</b>
+                    {% else%}
+                        Auction is closed !
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% endif%}
+        <hr>
+        <div id="listing_details_title">Details:</div>
+        <div id="listing_details">
+        {% if listing.category %}
+            <div id="listing_category">Category: <b>{{ listing.get_category_display }}</b></div>
+        {% endif %}
+        <div id="listing_user">Seller: <b>{{ listing.user }}</b></div>
+        </div>
+        <hr>
+
+
+        <div id="listing_comment_title">Comments</div>
+        {% if bc %}
+            <form action="{% url 'comment' listing.id %}" method="post">
+                {% csrf_token %}
+                <div id="listing_comment_div">
+                    <div><textarea id="listing_comment_field" type="text" name="comment" placeholder="Write your comment.."></textarea></div>
+                    <div><input type="submit" value="Comment !"></div>
+                </div>
+            </form>    
+        {% endif %}
+        {% if comments %}
+            {%  for c in comments %}
+            <div class="listing_comment">
+                <div class="listing_comment_head">
+                    <div class="listing_comment_user">{{ c.user }}</div>
+                    <div class="listing_comment_date">{{ c.date }}</div>
+                </div>
+                    <div class="listing_comment_text">{{ c.comment }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+        There are no comments yet !
+        {% endif %}
+    </div>
+</div>
+    
+    
+{% endblock %}

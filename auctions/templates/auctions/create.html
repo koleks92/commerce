@@ -1,0 +1,17 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <div id="create_head"><h2>Create New Listing</h2></div>
+
+    <form action="create" method="POST">
+        {% csrf_token %}
+        <div id="create_body">
+            <div id="create_name">{{ create.name }}</div>
+            <div id="create_description">{{ create.description }}</div>
+            <div id="create_price">{{ create.price }}</div>
+            <div id="create_category">{{ create.category }}</div>
+            <div id="create_image">{{ create.image }}</div>
+            <div id="create_button_div"><input type="submit" value="Create New Listing" id="create_button_div"></div>
+        </div>
+    </form>
+{% endblock %}
